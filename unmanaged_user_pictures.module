@@ -1,0 +1,9 @@
+<?php
+/**
+ * Implements hook_form_alter().
+ */
+function unmanaged_user_pictures_form_alter(&$form, $form_id){
+  
+}
+
+?>

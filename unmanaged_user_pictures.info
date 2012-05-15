@@ -1,0 +1,3 @@
+name = "Unmanaged User Pictures"
+description = "Module to detach user pictures from the files_managed table so that they can be shared."
+core = 7.x
