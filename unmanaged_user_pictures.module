@@ -2,8 +2,98 @@
 /**
  * Implements hook_form_alter().
  */
-function unmanaged_user_pictures_form_alter(&$form, $form_id){
-  
+function unmanaged_user_pictures_form_alter(&$form, &$form_state, $form_id){
+  if ($form_id == 'user_profile_form') {
+    dpm($form);
+    dpm($form_state);
+    $form['#submit'][1] = $form['#submit'][0];
+    unset($form['#submit'][0]);
+    $form['#submit'][0] = 'unmanaged_user_pictures_user_profile_submit';
+    sort($form['#submit']);
+  }
 }
+
+function unmanaged_user_pictures_user_profile_submit($form, $form_state){
+  dpm($form);
+  dpm($form_state);
+  $account = $form['#user'];
+  $picture = $form_state['values']['picture_upload'];
+  // If the picture is a temporary file move it to its final location and
+  // make it permanent.
+  /*if (!$form_state['values']['picture']) {
+    $info = image_get_info($picture->uri);
+    $picture_directory =  DRUPAL_ROOT . '/sites/all/files/' . variable_get('user_picture_path', 'pictures');
+    //dpm($picture_directory);
+  
+    // Prepare the pictures directory.
+    file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
+    $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '-' . REQUEST_TIME . '.' . $info['extension']);
+    //dpm($destination);
+  
+    // Move the temporary file into the final location.
+    if ($picture = file_copy($picture, $destination, FILE_EXISTS_RENAME)) {
+      $picture->status = FILE_STATUS_PERMANENT;
+      $account->picture_unmanaged = file_save($picture);
+      //file_usage_add($picture, 'user', 'user', $account->uid);
+    }
+  }*/
+  // Delete the previous picture if it was deleted or replaced.
+  //if (!empty($account->original->picture->fid)) {
+    //file_usage_delete($account->original->picture, 'user', 'user', $account->uid);
+    //file_delete($account->original->picture);
+  //}
+}
+
+/**
+ * Implements hook_user_insert().
+ *
+function unmanaged_user_pictures_user_insert(&$edit, $account, $category) {
+  dpm($edit);
+  dpm($account);
+  dpm($category);
+}
+
+/**
+ * Implements hook_user_update().
+ *
+function unmanaged_user_pictures_user_update(&$edit, $account, $category) {
+  dpm($edit);
+  dpm($account);
+  dpm($category);
+}
+
+/**
+ * Implements hook_user_presave().
+ */
+function unmanaged_user_pictures_user_presave(&$edit, $account, $category) {
+  dpm($edit);
+  dpm($account);
+  dpm($category);
+  //$picture = $edit['picture_upload'];
+  // If the picture is a temporary file move it to its final location and
+  // make it permanent.
+  //if (!$picture->status) {
+    //$info = image_get_info($picture->uri);
+    //$picture_directory =  DRUPAL_ROOT . '/sites/all/files/' . variable_get('user_picture_path', 'pictures');
+    //dpm($picture_directory);
+    
+    // Prepare the pictures directory.
+    //file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
+    //$destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '-' . REQUEST_TIME . '.' . $info['extension']);
+    //dpm($destination);
+  
+    // Move the temporary file into the final location.
+    //if ($picture = file_move($picture, $destination, FILE_EXISTS_RENAME)) {
+      //$picture->status = FILE_STATUS_PERMANENT;
+      //$account->picture_unmanaged = file_save($picture);
+      //file_usage_add($picture, 'user', 'user', $account->uid);
+    //}
+  //}
+  // Delete the previous picture if it was deleted or replaced.
+  //if (!empty($account->original->picture->fid)) {
+    //file_usage_delete($account->original->picture, 'user', 'user', $account->uid);
+    //file_delete($account->original->picture);
+  //}
+}/**/
 
 ?>

@@ -1,0 +1,39 @@
+<?php
+/**
+ * Implements hook_install().
+ */
+function unmanaged_user_pictures_install() {
+  $spec = array(
+      'type' => 'varchar',
+      'length' => 256,
+      'not null' => FALSE,
+      'default' => '',
+  );
+  
+  db_add_field('users', 'picture_unmanaged', $spec);
+}
+
+/**
+ * Implements hook_schema_alter
+ */
+function unmanaged_user_pictures_schema_alter(&$schema){
+  // Change the users.picture field so that a filepath can be stored in it.
+  $spec = array(
+      'type' => 'varchar',
+      'length' => 256,
+      'not null' => FALSE,
+      'default' => '',
+  );
+  
+  $schema['users']['fields']['picture_unmanaged'] = $spec;
+  dpm($schema);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function unmanaged_user_pictures_uninstall(){
+  db_drop_field('users', 'picture_unmanaged');
+}
+
+?>
