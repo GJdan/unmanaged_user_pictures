@@ -104,16 +104,17 @@ function unmanaged_user_pictures_user_profile_submit($form, $form_state){
  */
 function unmanaged_user_pictures_preprocess_user_picture(&$variables) {
   $using_shared = TRUE;
-  $variables['user_picture'] = '';
-  if (variable_get('user_pictures', 0)) {
-    $account = $variables['account'];
-    if (!empty($account->picture_unmanaged)) {
-      $filepath = $account->picture_unmanaged;
-    }
-    elseif (variable_get('user_picture_default', '')) {
-      $filepath = variable_get('user_picture_default', '');
-      $using_shared = FALSE;
-    }
+  $account = $variables['account'];
+  if (!empty($account->picture_unmanaged)) {
+    $filepath = $account->picture_unmanaged;
+    // Only clear the user_picture if the shared using picture is being used.
+    $variables['user_picture'] = '';
+  }
+  elseif (variable_get('user_picture_default', '')) {
+    $filepath = variable_get('user_picture_default', '');
+    $using_shared = FALSE;
+  }
+  if (variable_get('user_pictures', 0) && $using_shared) {
     if (isset($filepath)) {
       $alt = t("@user's picture", array('@user' => format_username($account)));
       // If the image does not have a valid Drupal scheme (for eg. HTTP),
