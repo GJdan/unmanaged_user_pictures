@@ -26,7 +26,6 @@ function unmanaged_user_pictures_schema_alter(&$schema){
   );
   
   $schema['users']['fields']['picture_unmanaged'] = $spec;
-  dpm($schema);
 }
 
 /**
