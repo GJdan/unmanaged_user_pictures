@@ -112,7 +112,6 @@ function unmanaged_user_pictures_preprocess_user_picture(&$variables) {
     }
     elseif (variable_get('user_picture_default', '')) {
       $filepath = variable_get('user_picture_default', '');
-      dpm($filepath);
       $using_shared = FALSE;
     }
     if (isset($filepath)) {
@@ -131,7 +130,6 @@ function unmanaged_user_pictures_preprocess_user_picture(&$variables) {
       }
     }
   }
-  dpm($variables);
 }
 
 /**
@@ -161,12 +159,10 @@ function unmanaged_user_pictures_theme($existing, $type, $theme, $path) {
  */
 function theme_unmanaged_user_pictures_shared_files($variables) {
   $styled_path = image_style_path($variables['style_name'], $variables['path']);
-  dpm($variables);
   if (!file_exists($styled_path)) {
     $style = image_style_load($variables['style_name']);
     image_style_create_derivative($style, $variables['path'], $styled_path);
   }
   $variables['path'] = $styled_path;
-  dpm($variables);
   return theme('image', $variables);
 }
