@@ -41,8 +41,8 @@ function unmanaged_user_pictures_stream_wrappers() {
  */
 function unmanaged_user_pictures_form_alter(&$form, &$form_state, $form_id){
   if ($form_id == 'user_profile_form') {
-    dpm($form);
-    dpm($form_state);
+    //dpm($form);
+    //dpm($form_state);
     $form['#submit'][1] = $form['#submit'][0];
     unset($form['#submit'][0]);
     $form['#submit'][0] = 'unmanaged_user_pictures_user_profile_submit';
@@ -53,39 +53,48 @@ function unmanaged_user_pictures_form_alter(&$form, &$form_state, $form_id){
 function unmanaged_user_pictures_user_profile_submit($form, $form_state){
   dpm($form);
   dpm($form_state);
-  $account = $form['#user'];
+  $account = user_load($form['#user']->uid);
   $picture = $form_state['values']['picture_upload'];
-  // If the picture is a temporary file move it to its final location and
-  // make it permanent.
-  if (!$form_state['values']['picture']) {
+  
+  if ($picture) {
     $info = image_get_info($picture->uri);
     $picture_directory =  'shared://' . variable_get('user_picture_path', 'pictures');
     //dpm($picture_directory);
+    $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '-' . REQUEST_TIME . '.' . $info['extension']);
+    dpm($destination);
+    dpm($picture);
+  }
   
+  /**/
+  // Check if picture is to be deleted.
+  if (($picture = $form_state['values']['picture_upload']) || ($form_state['values']['picture_delete'] == 1)) {
+    dpm($picture);
+    dpm($account);
+    dpm(drupal_realpath($account->picture_unmanaged));
+    
+    file_unmanaged_delete($account->picture_unmanaged);
+    $account->picture_unmanaged = '';
+  }/**/
+  // If a picture has been uploaded, delete the old one if it exists and place the new one in the shared files directory.
+  if (isset($info['extension'])) {
     // Prepare the pictures directory.
     file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
-    $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '-' . REQUEST_TIME . '.' . $info['extension']);
-    //dpm($destination);
-  
-    
-    // From here on the proper user object is needed.
-    $account = user_load($account->uid);
+
     // Move the temporary file into the final location.
     if ($picture = file_copy($picture, $destination, FILE_EXISTS_RENAME)) {
       $picture->status = FILE_STATUS_PERMANENT;
-      $account->picture_unmanaged = $picture->uri;
+      
+      if ($account->picture_unmanaged) { // Delete old picture file if it exists.
+        file_unmanaged_delete($account->picture_unmanaged);
+      }
+      $account->picture_unmanaged = $picture->uri;  // Set picture_unmanaged to uri of new picture.
     }
     // Check if picture was replaced and set values accordingly.
     
     // Save new picture.
   }
-  // Check if picture was deleted.
-  if ($form_state['values']['picture_delete'] == 1) {
-    $account->picture_unmanaged = '';
-  }
-  
   user_save($account);
-  dpm($account);
+  //dpm($account);
 }
 
 /**
