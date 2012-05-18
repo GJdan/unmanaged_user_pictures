@@ -104,7 +104,9 @@ function unmanaged_user_pictures_user_profile_submit($form, $form_state){
  */
 function unmanaged_user_pictures_preprocess_user_picture(&$variables) {
   $using_shared = TRUE;
-  $account = $variables['account'];
+  $q = db_query("SELECT {uid, name, picture_unmanaged} FROM {users} WHERE uid = :uid", array(':uid' => $variables['account']->uid));
+  $account = $q->fetchObject();
+  
   if (!empty($account->picture_unmanaged)) {
     $filepath = $account->picture_unmanaged;
     // Only clear the user_picture if the shared using picture is being used.
