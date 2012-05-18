@@ -1,0 +1,5 @@
+name = "Unmanaged User Pictures Main Site Installer"
+description = "This module need only be enabled on a single site in the network of sites sharing users."
+version = VERSION
+core = 7.x
+package = "Unmanaged User Pictures"

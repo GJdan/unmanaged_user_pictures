@@ -2,7 +2,7 @@
 /**
  * Implements hook_install().
  */
-function unmanaged_user_pictures_install() {
+function unmanaged_user_pictures_main_install() {
   $spec = array(
       'type' => 'varchar',
       'length' => 256,
@@ -16,7 +16,7 @@ function unmanaged_user_pictures_install() {
 /**
  * Implements hook_schema_alter
  */
-function unmanaged_user_pictures_schema_alter(&$schema){
+function unmanaged_user_pictures_main_schema_alter(&$schema){
   // Change the users.picture field so that a filepath can be stored in it.
   $spec = array(
       'type' => 'varchar',
@@ -31,7 +31,7 @@ function unmanaged_user_pictures_schema_alter(&$schema){
 /**
  * Implements hook_uninstall().
  */
-function unmanaged_user_pictures_uninstall(){
+function unmanaged_user_pictures_main_uninstall(){
   db_drop_field('users', 'picture_unmanaged');
 }
 
