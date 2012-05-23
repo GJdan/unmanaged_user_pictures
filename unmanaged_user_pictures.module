@@ -50,14 +50,26 @@ function unmanaged_user_pictures_form_alter(&$form, &$form_state, $form_id){
     $form['#submit'][0] = 'unmanaged_user_pictures_user_profile_submit';
     sort($form['#submit']);
     
-    // Check if a current picture exists and set #access to delete and upload fields respectively
-    if (empty($form['picture']['picture_current']['#markup'])) {
-      $form['picture']['picture_delete']['#access'] = FALSE;
-      $form['picture']['picture_upload']['#access'] = TRUE;
-    } else {
-      $form['picture']['picture_delete']['#access'] = TRUE;
-      $form['picture']['picture_upload']['#access'] = FALSE;
-    }
+    // Remove access to the default upload and delete fields.
+    $form['picture']['picture_delete']['#access'] = FALSE;
+    $form['picture']['picture_upload']['#access'] = FALSE;
+    // Add our own replacement fields.
+    $form['picture']['picture_current']['#weight'] = -3;
+    $form['picture']['unmanaged_picture_delete'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Delete picture'),
+      '#access' => !empty($form['#user']->picture_unmanaged),
+      '#description' => t('Check this box to delete your current picture.'),
+      '#weight' => -2,
+    );
+    $form['picture']['unmanaged_picture_upload'] = array(
+      '#type' => 'file',
+      '#title' => t('Upload picture'),
+      '#size' => 48,
+      '#description' => t('Your virtual face or picture. Pictures larger than @dimensions pixels will be scaled down.', array('@dimensions' => variable_get('user_picture_dimensions', '85x85'))) . ' ' . filter_xss_admin(variable_get('user_picture_guidelines', '')),
+      '#weight' => -1,
+    );
+    $form['#validate'][] = 'unmanaged_picture_validate_picture';
   }
 }
 
@@ -69,7 +81,7 @@ function unmanaged_user_pictures_form_alter(&$form, &$form_state, $form_id){
  */
 function unmanaged_user_pictures_user_profile_submit($form, $form_state){
   $account = user_load($form['#user']->uid);
-  $picture = $form_state['values']['picture_upload'];
+  $picture = $form_state['values']['unmanaged_picture_upload'];
   
   // If a picture has been uploaded parse it for information and prepare the final destination.
   if ($picture) {
@@ -78,7 +90,7 @@ function unmanaged_user_pictures_user_profile_submit($form, $form_state){
     $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '-' . REQUEST_TIME . '.' . $info['extension']);
   }
   // If picture is to be deleted... Delete it.
-  if ($form_state['values']['picture_delete'] == 1) {
+  if ($form_state['values']['unmanaged_picture_delete'] == 1) {
     file_unmanaged_delete($account->picture_unmanaged);
     $account->picture_unmanaged = '';
   }
@@ -178,4 +190,27 @@ function theme_unmanaged_user_pictures_shared_files($variables) {
   }
   $variables['path'] = $styled_path;
   return theme('image', $variables);
+}
+
+/**
+ * Validates an image uploaded by a user.
+ *
+ * @see user_account_form()
+ */
+function unmanaged_picture_validate_picture(&$form, &$form_state) {
+  // If required, validate the uploaded picture.
+  $validators = array(
+    'file_validate_is_image' => array(),
+    'file_validate_image_resolution' => array(variable_get('user_picture_dimensions', '85x85')),
+    'file_validate_size' => array(variable_get('user_picture_file_size', '30') * 1024),
+  );
+
+  // Save the file as a temporary file.
+  $file = file_save_upload('unmanaged_picture_upload', $validators);
+  if ($file === FALSE) {
+    form_set_error('picture_upload', t("Failed to upload the picture image; the %directory directory doesn't exist or is not writable.", array('%directory' => variable_get('user_picture_path', 'pictures'))));
+  }
+  elseif ($file !== NULL) {
+    $form_state['values']['unmanaged_picture_upload'] = $file;
+  }
 }

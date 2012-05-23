@@ -4,14 +4,12 @@
  */
 function unmanaged_user_pictures_schema_alter(&$schema){
   // Change the users.picture field so that a filepath can be stored in it.
-  if (empty($schema['users']['fields']['picture_unmanaged'])) {
-    $spec = array(
-        'type' => 'varchar',
-        'length' => 256,
-        'not null' => FALSE,
-        'default' => '',
-    );
+  $spec = array(
+      'type' => 'varchar',
+      'length' => 256,
+      'not null' => FALSE,
+      'default' => '',
+  );
     
-    $schema['users']['fields']['picture_unmanaged'] = $spec;
-  }
+  $schema['users']['fields']['picture_unmanaged'] = $spec;
 }
