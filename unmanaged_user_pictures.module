@@ -44,7 +44,7 @@ function unmanaged_user_pictures_stream_wrappers() {
 function unmanaged_user_pictures_form_alter(&$form, &$form_state, $form_id){
   if ($form_id == 'user_profile_form') {  // Ensure that unmanaged_user_pictures_user_profile_submit is the first
                                           // submit function run.  (This is probably against a number of rules...)
-    dpm($form);
+    
     $form['#submit'][1] = $form['#submit'][0];
     unset($form['#submit'][0]);
     $form['#submit'][0] = 'unmanaged_user_pictures_user_profile_submit';
