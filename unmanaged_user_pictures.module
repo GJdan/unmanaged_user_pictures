@@ -101,16 +101,14 @@ function unmanaged_user_pictures_user_profile_submit($form, $form_state){
     // Prepare the pictures directory.
     file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
     
-    // Move the temporary file into the final location.
-    if ($picture = file_copy($picture, $destination, FILE_EXISTS_RENAME)) {
-      $picture->status = FILE_STATUS_PERMANENT;
-      
+    // Copy the temporary file into the final location. (To prevent system_cron from complaining when it tries to delete the temperary file.)
+    if ($picture = file_unmanaged_copy($picture->uri, $destination, FILE_EXISTS_RENAME)) {
       // Delete old picture file if it exists.
       if ($account->picture_unmanaged) {
         file_unmanaged_delete($account->picture_unmanaged);
       }
       // Set picture_unmanaged to uri of new picture.
-      $account->picture_unmanaged = $picture->uri;
+      $account->picture_unmanaged = $picture;
     }
   }
   // Save account with new picture.
