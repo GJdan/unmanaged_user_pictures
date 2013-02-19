@@ -12,7 +12,7 @@ class DrupalSharedStreamWrapper extends DrupalLocalStreamWrapper {
   public function getDirectoryPath() {
     return 'sites/all/files';
   }
-  
+
   /**
    * Overrides getExternalUrl().
    *
@@ -44,12 +44,12 @@ function unmanaged_user_pictures_stream_wrappers() {
 function unmanaged_user_pictures_form_alter(&$form, &$form_state, $form_id){
   if ($form_id == 'user_profile_form') {  // Ensure that unmanaged_user_pictures_user_profile_submit is the first
                                           // submit function run.  (This is probably against a number of rules...)
-    
+
     $form['#submit'][1] = $form['#submit'][0];
     unset($form['#submit'][0]);
     $form['#submit'][0] = 'unmanaged_user_pictures_user_profile_submit';
     sort($form['#submit']);
-    
+
     // Remove access to the default upload and delete fields.
     $form['picture']['picture_delete']['#access'] = FALSE;
     $form['picture']['picture_upload']['#access'] = FALSE;
@@ -82,7 +82,7 @@ function unmanaged_user_pictures_form_alter(&$form, &$form_state, $form_id){
 function unmanaged_user_pictures_user_profile_submit($form, $form_state){
   $account = user_load($form['#user']->uid);
   $picture = $form_state['values']['unmanaged_picture_upload'];
-  
+
   // If a picture has been uploaded parse it for information and prepare the final destination.
   if ($picture) {
     $info = image_get_info($picture->uri);
@@ -94,13 +94,13 @@ function unmanaged_user_pictures_user_profile_submit($form, $form_state){
     file_unmanaged_delete($account->picture_unmanaged);
     $account->picture_unmanaged = '';
   }
-  
+
   // If a picture has been uploaded, delete the old one if it exists
   // and place the new one in the shared files directory.
   if (isset($info['extension'])) {
     // Prepare the pictures directory.
     file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
-    
+
     // Copy the temporary file into the final location. (To prevent system_cron from complaining when it tries to delete the temperary file.)
     if ($picture = file_unmanaged_copy($picture->uri, $destination, FILE_EXISTS_RENAME)) {
       // Delete old picture file if it exists.
@@ -126,7 +126,7 @@ function unmanaged_user_pictures_preprocess_user_picture(&$variables) {
   $using_shared = TRUE;
   $q = db_query("SELECT {uid, name, picture_unmanaged} FROM {users} WHERE uid = :uid", array(':uid' => $variables['account']->uid));
   $account = $q->fetchObject();
-  
+
   if (!empty($account->picture_unmanaged)) {
     $filepath = $account->picture_unmanaged;
     // Only clear the user_picture if the shared using picture is being used.
@@ -211,4 +211,26 @@ function unmanaged_picture_validate_picture(&$form, &$form_state) {
   elseif ($file !== NULL) {
     $form_state['values']['unmanaged_picture_upload'] = $file;
   }
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function unmanaged_user_pictures_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/**
+ * Implementation of hook_views_data_alter().
+ */
+function unmanaged_user_pictures_views_data_alter(&$data) {
+
+  // Change handler for user pictures.
+  $data['users']['picture']['field'] = array(
+    'handler' => 'views_handler_field_unmanaged_user_picture',
+    'click sortable' => TRUE,
+    'path' => drupal_get_path('module', 'unmanaged_user_pictures'),
+  );
 }
