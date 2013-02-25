@@ -19,8 +19,8 @@ class views_handler_field_unmanaged_user_picture extends views_handler_field_use
   function render($values) {
     if ($this->options['image_style'] && module_exists('image')) {
       if ($picture_unmanaged_path = $this->get_value($values, 'picture_unmanaged')) {
-				$picture_filepath = $picture_unmanaged_path;
-			}
+        $picture_filepath = $picture_unmanaged_path;
+      }
       else if (($picture_fid = $this->get_value($values)) && $picture = file_load($picture_fid)) {
         $picture_filepath = $picture->uri;
       }
@@ -28,7 +28,12 @@ class views_handler_field_unmanaged_user_picture extends views_handler_field_use
         $picture_filepath = variable_get('user_picture_default', '');
       }
       if (file_valid_uri($picture_filepath)) {
-        $output = theme('image_style', array('style_name' => $this->options['image_style'], 'path' => $picture_filepath));
+        if (!empty($picture_unmanaged_path)) {
+          $output = theme('unmanaged_user_pictures_shared_files', array('style_name' => $this->options['image_style'], 'path' => $picture_filepath));
+        }
+        else {
+          $output = theme('image_style', array('style_name' => $this->options['image_style'], 'path' => $picture_filepath));
+        }
         if ($this->options['link_photo_to_profile'] && user_access('access user profiles')) {
           $uid = $this->get_value($values, 'uid');
           $output = l($output, "user/$uid", array('html' => TRUE));

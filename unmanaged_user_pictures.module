@@ -112,7 +112,7 @@ function unmanaged_user_pictures_user_profile_submit($form, $form_state){
     }
   }
   // Save account with new picture.
-  user_save($account);
+  //user_save($account);
 }
 
 /**
@@ -233,4 +233,37 @@ function unmanaged_user_pictures_views_data_alter(&$data) {
     'click sortable' => TRUE,
     'path' => drupal_get_path('module', 'unmanaged_user_pictures'),
   );
+}
+
+function unmanaged_user_pictures_user_presave(&$edit, $account, $category) {
+  $picture = $edit['unmanaged_picture_upload'] ? $edit['unmanaged_picture_upload'] : NULL;
+
+  // If a picture has been uploaded parse it for information and prepare the final destination.
+  if ($picture) {
+    $info = image_get_info($picture->uri);
+    $picture_directory =  'shared://' . variable_get('user_picture_path', 'pictures');
+    $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '-' . REQUEST_TIME . '.' . $info['extension']);
+  }
+  // If picture is to be deleted... Delete it.
+  if (!empty($edit['unmanaged_picture_delete'])) {
+    file_unmanaged_delete($account->picture_unmanaged);
+    $account->picture_unmanaged = '';
+  }
+
+  // If a picture has been uploaded, delete the old one if it exists
+  // and place the new one in the shared files directory.
+  if (isset($info['extension'])) {
+    // Prepare the pictures directory.
+    file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
+
+    // Copy the temporary file into the final location. (To prevent system_cron from complaining when it tries to delete the temperary file.)
+    if ($picture = file_unmanaged_copy($picture->uri, $destination, FILE_EXISTS_RENAME)) {
+      // Delete old picture file if it exists.
+      if ($account->picture_unmanaged) {
+        file_unmanaged_delete($account->picture_unmanaged);
+      }
+      // Set picture_unmanaged to uri of new picture.
+      $account->picture_unmanaged = $picture;
+    }
+  }
 }
