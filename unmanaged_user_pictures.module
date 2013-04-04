@@ -216,11 +216,13 @@ function unmanaged_picture_validate_picture(&$form, &$form_state) {
 /**
  * Implementation of hook_views_api().
  */
+/*
 function unmanaged_user_pictures_views_api() {
   return array(
     'api' => 3,
   );
 }
+*/
 
 /**
  * Implementation of hook_views_data_alter().
@@ -236,7 +238,7 @@ function unmanaged_user_pictures_views_data_alter(&$data) {
 }
 
 function unmanaged_user_pictures_user_presave(&$edit, $account, $category) {
-  $picture = $edit['unmanaged_picture_upload'] ? $edit['unmanaged_picture_upload'] : NULL;
+  $picture = empty($edit['unmanaged_picture_upload']) ? $edit['unmanaged_picture_upload'] : NULL;
 
   // If a picture has been uploaded parse it for information and prepare the final destination.
   if ($picture) {
