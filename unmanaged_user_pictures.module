@@ -238,7 +238,7 @@ function unmanaged_user_pictures_views_data_alter(&$data) {
 }
 
 function unmanaged_user_pictures_user_presave(&$edit, $account, $category) {
-  $picture = empty($edit['unmanaged_picture_upload']) ? $edit['unmanaged_picture_upload'] : NULL;
+  $picture = empty($edit['unmanaged_picture_upload']) ? NULL : $edit['unmanaged_picture_upload'];
 
   // If a picture has been uploaded parse it for information and prepare the final destination.
   if ($picture) {
